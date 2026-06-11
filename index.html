@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Калькулятор рецептуры моцареллы</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f5f0e8 0%, #e8dcc8 100%);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      padding: 24px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.10);
+      padding: 40px 44px;
+      max-width: 480px;
+      width: 100%;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .header .icon {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #2c1a0e;
+      letter-spacing: -0.3px;
+    }
+
+    .header p {
+      color: #8a7060;
+      font-size: 0.88rem;
+      margin-top: 6px;
+    }
+
+    .input-group {
+      margin-bottom: 28px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #5a4030;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrap input[type="number"] {
+      width: 100%;
+      padding: 14px 52px 14px 18px;
+      border: 2px solid #e0d0bc;
+      border-radius: 12px;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #2c1a0e;
+      background: #fdf9f5;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -moz-appearance: textfield;
+    }
+
+    .input-wrap input[type="number"]::-webkit-inner-spin-button,
+    .input-wrap input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .input-wrap input[type="number"]:focus {
+      border-color: #c8824a;
+      box-shadow: 0 0 0 3px rgba(200,130,74,0.15);
+      background: #fff;
+    }
+
+    .input-wrap .unit {
+      position: absolute;
+      right: 16px;
+      color: #a08060;
+      font-size: 0.9rem;
+      font-weight: 600;
+      pointer-events: none;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(to right, #c8824a 0%, #c8824a var(--pct, 0%), #e0d0bc var(--pct, 0%), #e0d0bc 100%);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #c8824a;
+      box-shadow: 0 2px 6px rgba(200,130,74,0.4);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border: none;
+      border-radius: 50%;
+      background: #c8824a;
+      box-shadow: 0 2px 6px rgba(200,130,74,0.4);
+      cursor: pointer;
+    }
+
+    .slider-bounds {
+      font-size: 0.75rem;
+      color: #a08060;
+      white-space: nowrap;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, #e0d0bc, transparent);
+      margin: 4px 0 28px;
+    }
+
+    .results-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #8a7060;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 16px;
+    }
+
+    .result-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .result-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fdf9f5;
+      border: 1.5px solid #ede0cc;
+      border-radius: 12px;
+      padding: 14px 18px;
+      gap: 12px;
+      transition: border-color 0.2s;
+    }
+
+    .result-item.highlight {
+      background: linear-gradient(135deg, #fff8f0, #fdf0e0);
+      border-color: #c8824a;
+    }
+
+    .result-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .result-emoji {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    .result-label {
+      font-size: 0.88rem;
+      color: #5a4030;
+      font-weight: 500;
+      line-height: 1.3;
+    }
+
+    .result-sublabel {
+      font-size: 0.75rem;
+      color: #a08060;
+      margin-top: 1px;
+    }
+
+    .result-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #2c1a0e;
+      white-space: nowrap;
+      flex-shrink: 0;
+      text-align: right;
+    }
+
+    .result-value .val-unit {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #8a7060;
+    }
+
+    .result-value.big {
+      font-size: 1.3rem;
+      color: #b06030;
+    }
+
+    .note {
+      margin-top: 24px;
+      background: #f5f0e8;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 0.78rem;
+      color: #7a6050;
+      line-height: 1.6;
+    }
+
+    .note strong { color: #5a4030; }
+
+    .zero-state {
+      text-align: center;
+      color: #c0a888;
+      font-size: 0.9rem;
+      padding: 20px 0;
+    }
+
+    @media (max-width: 520px) {
+      .card { padding: 28px 20px; }
+      .header h1 { font-size: 1.35rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <span class="icon">🧀</span>
+    <h1>Калькулятор моцареллы</h1>
+    <p>Введите объём молока — получите готовую рецептуру</p>
+  </div>
+
+  <div class="input-group">
+    <label for="milkInput">Объём молока</label>
+    <div class="input-wrap">
+      <input type="number" id="milkInput" min="0.5" max="100" step="0.5" placeholder="0" />
+      <span class="unit">л</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-bounds">0.5</span>
+      <input type="range" id="milkSlider" min="0.5" max="30" step="0.5" value="0" />
+      <span class="slider-bounds">30 л</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="results-title">Результат расчёта</div>
+
+  <div id="results">
+    <div class="zero-state">Введите количество молока, чтобы увидеть рецептуру ↑</div>
+  </div>
+
+  <div class="note" id="note" style="display:none">
+    <strong>Метод с лимонной кислотой</strong> (быстрая моцарелла).<br>
+    Лимонную кислоту растворить в холодной воде (50 мл), добавить в холодное молоко и нагреть до 32–35 °C.
+    Фермент растворить в холодной воде (50 мл), влить, перемешать 30 с и оставить на 5–10 мин.
+    Сырное зерно нагреть до 85–90 °C, вытянуть, сформовать шарики. Хранить в рассоле 2–3% (соль / вода).
+  </div>
+</div>
+
+<script>
+  const milkInput  = document.getElementById('milkInput');
+  const milkSlider = document.getElementById('milkSlider');
+  const resultsEl  = document.getElementById('results');
+  const noteEl     = document.getElementById('note');
+
+  function calc(liters) {
+    const mozzarella_g  = liters * 100;
+    const whey_l        = liters * 0.88;
+    const citric_g      = liters * 1.875;
+    const rennet_ml     = liters * 0.30;
+    const rennet_tab    = liters / 4;
+    const salt_brine_g  = liters * 2.5;
+    return { mozzarella_g, whey_l, citric_g, rennet_ml, rennet_tab, salt_brine_g };
+  }
+
+  function fmt(n, dec = 1) {
+    return n.toLocaleString('ru-RU', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  }
+
+  function render(liters) {
+    if (!liters || liters <= 0) {
+      resultsEl.innerHTML = '<div class="zero-state">Введите количество молока, чтобы увидеть рецептуру ↑</div>';
+      noteEl.style.display = 'none';
+      return;
+    }
+    const r = calc(liters);
+    resultsEl.innerHTML = `
+      <div class="result-grid">
+        <div class="result-item highlight">
+          <div class="result-left">
+            <span class="result-emoji">🧀</span>
+            <div>
+              <div class="result-label">Моцарелла (выход)</div>
+              <div class="result-sublabel">~10 % от объёма молока</div>
+            </div>
+          </div>
+          <div class="result-value big">${fmt(r.mozzarella_g, 0)} <span class="val-unit">г</span></div>
+        </div>
+        <div class="result-item">
+          <div class="result-left">
+            <span class="result-emoji">💧</span>
+            <div>
+              <div class="result-label">Сыворотка</div>
+              <div class="result-sublabel">~88 % молока</div>
+            </div>
+          </div>
+          <div class="result-value">${fmt(r.whey_l)} <span class="val-unit">л</span></div>
+        </div>
+        <div class="result-item">
+          <div class="result-left">
+            <span class="result-emoji">🍋</span>
+            <div>
+              <div class="result-label">Лимонная кислота</div>
+              <div class="result-sublabel">закваска / подкисление</div>
+            </div>
+          </div>
+          <div class="result-value">${fmt(r.citric_g, 1)} <span class="val-unit">г</span></div>
+        </div>
+        <div class="result-item">
+          <div class="result-left">
+            <span class="result-emoji">🧪</span>
+            <div>
+              <div class="result-label">Жидкий сычужный фермент</div>
+              <div class="result-sublabel">или ${fmt(r.rennet_tab, 2)} табл. сухого</div>
+            </div>
+          </div>
+          <div class="result-value">${fmt(r.rennet_ml, 1)} <span class="val-unit">мл</span></div>
+        </div>
+        <div class="result-item">
+          <div class="result-left">
+            <span class="result-emoji">🧂</span>
+            <div>
+              <div class="result-label">Соль для рассола</div>
+              <div class="result-sublabel">2.5 % раствор (на 1 л воды)</div>
+            </div>
+          </div>
+          <div class="result-value">${fmt(r.salt_brine_g, 1)} <span class="val-unit">г</span></div>
+        </div>
+      </div>`;
+    noteEl.style.display = 'block';
+  }
+
+  function updateSliderFill(val) {
+    const min = +milkSlider.min, max = +milkSlider.max;
+    const pct = Math.min(100, Math.max(0, ((val - min) / (max - min)) * 100));
+    milkSlider.style.setProperty('--pct', pct + '%');
+  }
+
+  milkInput.addEventListener('input', () => {
+    const v = parseFloat(milkInput.value);
+    if (!isNaN(v) && v >= 0.5 && v <= 30) {
+      milkSlider.value = v;
+      updateSliderFill(v);
+    }
+    render(v);
+  });
+
+  milkSlider.addEventListener('input', () => {
+    const v = parseFloat(milkSlider.value);
+    milkInput.value = v;
+    updateSliderFill(v);
+    render(v);
+  });
+
+  updateSliderFill(0);
+</script>
+</body>
+</html>
